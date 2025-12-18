@@ -371,12 +371,27 @@
   </div>
   
   <script>
+    let lastRequestTime = 0;
+    const COOLDOWN_MS = 45000; // 45 seconds cooldown
+    
     async function generate() {
       const progressContainer = document.getElementById("progressContainer");
       const progressFill = document.getElementById("progressFill");
       const status = document.getElementById("status");
       const results = document.getElementById("results");
       
+      // Check cooldown
+      const now = Date.now();
+      const timeSinceLastRequest = now - lastRequestTime;
+      if (timeSinceLastRequest < COOLDOWN_MS) {
+        const waitTime = Math.ceil((COOLDOWN_MS - timeSinceLastRequest) / 1000);
+        status.textContent = `⏳ Please wait ${waitTime} seconds before generating again`;
+        status.className = "status error";
+        progressContainer.style.display = "block";
+        return;
+      }
+      
+      lastRequestTime = now;
       progressContainer.style.display = "block";
       results.style.display = "block";
       progressFill.style.width = "20%";
@@ -412,12 +427,13 @@
         status.textContent = "✅ Code generated successfully!";
         status.className = "status done";
         
-        document.getElementById("frontend").textContent = data.frontend || "No output generated";
-        document.getElementById("backend").textContent = data.backend || "No output generated";
-        document.getElementById("database").textContent = data.database || "No output generated";
-        document.getElementById("tests").textContent = data.tests || "No output generated";
-        document.getElementById("docs").textContent = data.docs || "No output generated";
-        document.getElementById("deployment").textContent = data.deployment || "No output generated";
+        // Handle null values more gracefully
+        document.getElementById("frontend").textContent = data.frontend || "⚠️ No frontend code generated. Please check your webhook configuration.";
+        document.getElementById("backend").textContent = data.backend || "⚠️ No backend code generated. Please check your webhook configuration.";
+        document.getElementById("database").textContent = data.database || "⚠️ No database schema generated. Please check your webhook configuration.";
+        document.getElementById("tests").textContent = data.tests || "⚠️ No tests generated. Please check your webhook configuration.";
+        document.getElementById("docs").textContent = data.docs || "⚠️ No documentation generated. Please check your webhook configuration.";
+        document.getElementById("deployment").textContent = data.deployment || "⚠️ No deployment config generated. Please check your webhook configuration.";
         
         results.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } catch (err) {
