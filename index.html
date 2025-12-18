@@ -405,6 +405,16 @@
         techStack: document.getElementById("stack").value
       };
       
+      // Validation
+      if (!payload.title || !payload.userStory || !payload.criteria || !payload.techStack) {
+        status.textContent = "⚠️ Please fill in all fields before generating";
+        status.className = "status error";
+        progressFill.style.width = "0%";
+        return;
+      }
+      
+      console.log("📤 Sending payload to webhook:", payload);
+      
       try {
         progressFill.style.width = "40%";
         status.textContent = "Coordinating AI agents...";
@@ -417,6 +427,9 @@
             body: JSON.stringify(payload)
           }
         );
+        
+        console.log("📥 Response status:", response.status);
+        console.log("📥 Response headers:", [...response.headers.entries()]);
         
         progressFill.style.width = "70%";
         status.textContent = "Generating code...";
