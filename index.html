@@ -1,71 +1,190 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>AI Multi-Agent Code Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
-    body { font-family: Arial; padding: 20px; }
-    textarea, input { width: 100%; margin-bottom: 10px; }
-    pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; }
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --accent: #22c55e;
+      --border: #374151;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: var(--card);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      background: #020617;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    textarea { min-height: 80px; }
+
+    button {
+      margin-top: 20px;
+      padding: 12px;
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background: #15803d;
+      cursor: not-allowed;
+    }
+
+    .progress {
+      margin-top: 20px;
+      background: #020617;
+      border-radius: 6px;
+      overflow: hidden;
+      display: none;
+    }
+
+    .bar {
+      height: 12px;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.4s;
+    }
+
+    .output {
+      margin-top: 25px;
+    }
+
+    .section {
+      margin-top: 20px;
+      background: #020617;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 14px;
+    }
   </style>
 </head>
+
 <body>
+  <div class="container">
+    <h1>🤖 AI Multi-Agent Code Generator</h1>
 
-<h1>AI Multi-Agent Code Generator</h1>
+    <label>Project Title</label>
+    <input id="title" placeholder="User Login System" />
 
-<input id="title" placeholder="Title">
-<textarea id="userStory" placeholder="User Story"></textarea>
-<textarea id="acceptanceCriteria" placeholder="Acceptance Criteria"></textarea>
-<input id="techStack" placeholder="Tech Stack">
+    <label>User Story</label>
+    <textarea id="story">As a user, I want login functionality</textarea>
 
-<button onclick="generate()">Generate</button>
+    <label>Acceptance Criteria</label>
+    <textarea id="criteria">User can login using email and password</textarea>
 
-<p id="status"></p>
+    <label>Tech Stack</label>
+    <input id="stack" placeholder="React, FastAPI, PostgreSQL" />
 
-<h2>Frontend</h2>
-<pre id="frontend"></pre>
+    <button id="btn" onclick="generate()">Generate</button>
 
-<h2>Backend</h2>
-<pre id="backend"></pre>
+    <div class="progress" id="progress">
+      <div class="bar" id="bar"></div>
+    </div>
 
-<h2>Database</h2>
-<pre id="database"></pre>
-
-<h2>Tests</h2>
-<pre id="tests"></pre>
-
-<h2>Docs</h2>
-<pre id="docs"></pre>
-
-<h2>Deployment</h2>
-<pre id="deployment"></pre>
+    <div class="output" id="output"></div>
+  </div>
 
 <script>
 async function generate() {
-  document.getElementById("status").innerText = "Generating...";
+  const btn = document.getElementById("btn");
+  const progress = document.getElementById("progress");
+  const bar = document.getElementById("bar");
+  const output = document.getElementById("output");
 
-  const response = await fetch("https://hook.us2.make.com/bms5vwl9vgkk974nhz6gja9cf03x0xou", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      title: document.getElementById("title").value,
-      userStory: document.getElementById("userStory").value,
-      acceptanceCriteria: document.getElementById("acceptanceCriteria").value,
-      techStack: document.getElementById("techStack").value
-    })
-  });
+  btn.disabled = true;
+  progress.style.display = "block";
+  bar.style.width = "0%";
+  output.innerHTML = "";
 
-  const data = await response.json();
+  let percent = 0;
+  const loader = setInterval(() => {
+    percent = Math.min(percent + 10, 90);
+    bar.style.width = percent + "%";
+  }, 400);
 
-  document.getElementById("frontend").innerText = data.frontend || "";
-  document.getElementById("backend").innerText = data.backend || "";
-  document.getElementById("database").innerText = data.database || "";
-  document.getElementById("tests").innerText = data.tests || "";
-  document.getElementById("docs").innerText = data.docs || "";
-  document.getElementById("deployment").innerText = data.deployment || "";
+  const payload = {
+    title: document.getElementById("title").value,
+    userStory: document.getElementById("story").value,
+    acceptanceCriteria: document.getElementById("criteria").value,
+    techStack: document.getElementById("stack").value
+  };
 
-  document.getElementById("status").innerText = "Done ✅";
+  try {
+    const res = await fetch(
+      "https://hook.us2.make.com/bms5vwl9vgkk974nhz6gja9cf03x0xou",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }
+    );
+
+    const data = await res.json();
+    clearInterval(loader);
+    bar.style.width = "100%";
+
+    for (const key in data) {
+      output.innerHTML += `
+        <div class="section">
+          <h3>${key.toUpperCase()}</h3>
+          <pre>${data[key] || "No output"}</pre>
+        </div>
+      `;
+    }
+
+  } catch (err) {
+    clearInterval(loader);
+    output.innerHTML = "<p style='color:red'>Error calling webhook</p>";
+  }
+
+  btn.disabled = false;
 }
 </script>
-
 </body>
 </html>
