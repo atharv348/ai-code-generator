@@ -439,9 +439,34 @@
       } catch (err) {
         progressFill.style.width = "100%";
         progressFill.style.background = "#ef4444";
-        status.textContent = "❌ Error generating code";
+        
+        // Try to get more specific error info
+        let errorMessage = "❌ Error generating code";
+        if (err.message) {
+          errorMessage += `: ${err.message}`;
+        }
+        
+        // Check if it's a rate limit error
+        if (err.message && err.message.includes("429")) {
+          errorMessage = "⏱️ Rate limit exceeded. Please wait 45 seconds and try again.";
+        } else if (err.message && err.message.includes("quota")) {
+          errorMessage = "💳 API quota exceeded. Please upgrade your plan or wait for reset.";
+        } else if (!navigator.onLine) {
+          errorMessage = "🌐 No internet connection. Please check your network.";
+        }
+        
+        status.textContent = errorMessage;
         status.className = "status error";
-        console.error(err);
+        console.error("Full error details:", err);
+        
+        // Show error in all result cards
+        const errorDisplay = `Error: ${err.message || 'Unknown error occurred'}\n\nPlease check:\n- Your internet connection\n- Make.com scenario status\n- API quotas and billing\n- Webhook URL validity`;
+        document.getElementById("frontend").textContent = errorDisplay;
+        document.getElementById("backend").textContent = errorDisplay;
+        document.getElementById("database").textContent = errorDisplay;
+        document.getElementById("tests").textContent = errorDisplay;
+        document.getElementById("docs").textContent = errorDisplay;
+        document.getElementById("deployment").textContent = errorDisplay;
       }
     }
   </script>
