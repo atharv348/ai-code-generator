@@ -2,189 +2,432 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Multi-Agent Code Generator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <style>
-    :root {
-      --bg: #0f172a;
-      --card: #111827;
-      --text: #e5e7eb;
-      --accent: #22c55e;
-      --border: #374151;
-    }
-
-    body {
+    * {
       margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: system-ui, sans-serif;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
       padding: 20px;
     }
-
+    
     .container {
-      max-width: 900px;
-      margin: auto;
-      background: var(--card);
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+      max-width: 1200px;
+      margin: 0 auto;
     }
-
-    h1 {
+    
+    .header {
       text-align: center;
-      margin-bottom: 20px;
+      color: white;
+      margin-bottom: 40px;
+      animation: fadeInDown 0.6s ease;
     }
-
-    label {
-      font-weight: bold;
+    
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.95;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: fadeInUp 0.6s ease;
+    }
+    
+    .form-group {
+      margin-bottom: 25px;
+    }
+    
+    .form-group label {
       display: block;
-      margin-top: 15px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
     }
-
-    input, textarea {
+    
+    .form-group input,
+    .form-group textarea {
       width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      background: #020617;
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 6px;
+      padding: 14px 18px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 15px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      background: #f9fafb;
     }
-
-    textarea { min-height: 80px; }
-
-    button {
-      margin-top: 20px;
-      padding: 12px;
+    
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    
+    .generate-btn {
       width: 100%;
-      background: var(--accent);
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 12px;
       font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
     }
-
-    button:disabled {
-      background: #15803d;
-      cursor: not-allowed;
+    
+    .generate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
     }
-
-    .progress {
-      margin-top: 20px;
-      background: #020617;
-      border-radius: 6px;
-      overflow: hidden;
+    
+    .generate-btn:active {
+      transform: translateY(0);
+    }
+    
+    .progress-container {
+      margin-top: 30px;
       display: none;
     }
-
-    .bar {
+    
+    .progress-bar {
       height: 12px;
+      background: #e5e7eb;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .progress-fill {
+      height: 100%;
       width: 0%;
-      background: var(--accent);
-      transition: width 0.4s;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      transition: width 0.5s ease;
+      position: relative;
+      overflow: hidden;
     }
-
-    .output {
-      margin-top: 25px;
+    
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: shimmer 1.5s infinite;
     }
-
-    .section {
+    
+    .status {
+      text-align: center;
+      margin-top: 15px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: #374151;
+    }
+    
+    .status.done {
+      color: #10b981;
+    }
+    
+    .status.error {
+      color: #ef4444;
+    }
+    
+    .results {
+      margin-top: 40px;
+      display: none;
+    }
+    
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 25px;
       margin-top: 20px;
-      background: #020617;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
     }
-
-    pre {
-      white-space: pre-wrap;
-      word-break: break-word;
-      font-size: 14px;
+    
+    .result-card {
+      background: white;
+      border-radius: 16px;
+      padding: 25px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+      animation: fadeInUp 0.6s ease;
+    }
+    
+    .result-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+    
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+    
+    .result-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .result-header h3 {
+      font-size: 1.2rem;
+      color: #111827;
+      font-weight: 700;
+    }
+    
+    .result-content {
+      background: #1f2937;
+      color: #e5e7eb;
+      padding: 20px;
+      border-radius: 12px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .result-content::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    .result-content::-webkit-scrollbar-track {
+      background: #374151;
+      border-radius: 10px;
+    }
+    
+    .result-content::-webkit-scrollbar-thumb {
+      background: #667eea;
+      border-radius: 10px;
+    }
+    
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+      
+      .card {
+        padding: 25px;
+      }
+      
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
-
 <body>
   <div class="container">
-    <h1>🤖 AI Multi-Agent Code Generator</h1>
-
-    <label>Project Title</label>
-    <input id="title" placeholder="User Login System" />
-
-    <label>User Story</label>
-    <textarea id="story">As a user, I want login functionality</textarea>
-
-    <label>Acceptance Criteria</label>
-    <textarea id="criteria">User can login using email and password</textarea>
-
-    <label>Tech Stack</label>
-    <input id="stack" placeholder="React, FastAPI, PostgreSQL" />
-
-    <button id="btn" onclick="generate()">Generate</button>
-
-    <div class="progress" id="progress">
-      <div class="bar" id="bar"></div>
+    <div class="header">
+      <h1>🤖 AI Multi-Agent Code Generator</h1>
+      <p>Transform your ideas into production-ready code in seconds</p>
     </div>
-
-    <div class="output" id="output"></div>
-  </div>
-
-<script>
-async function generate() {
-  const btn = document.getElementById("btn");
-  const progress = document.getElementById("progress");
-  const bar = document.getElementById("bar");
-  const output = document.getElementById("output");
-
-  btn.disabled = true;
-  progress.style.display = "block";
-  bar.style.width = "0%";
-  output.innerHTML = "";
-
-  let percent = 0;
-  const loader = setInterval(() => {
-    percent = Math.min(percent + 10, 90);
-    bar.style.width = percent + "%";
-  }, 400);
-
-  const payload = {
-    title: document.getElementById("title").value,
-    userStory: document.getElementById("story").value,
-    acceptanceCriteria: document.getElementById("criteria").value,
-    techStack: document.getElementById("stack").value
-  };
-
-  try {
-    const res = await fetch(
-      "https://hook.us2.make.com/bms5vwl9vgkk974nhz6gja9cf03x0xou",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      }
-    );
-
-    const data = await res.json();
-    clearInterval(loader);
-    bar.style.width = "100%";
-
-    for (const key in data) {
-      output.innerHTML += `
-        <div class="section">
-          <h3>${key.toUpperCase()}</h3>
-          <pre>${data[key] || "No output"}</pre>
+    
+    <div class="card">
+      <div class="form-group">
+        <label for="title">Project Title</label>
+        <input id="title" type="text" placeholder="e.g., User Authentication System" />
+      </div>
+      
+      <div class="form-group">
+        <label for="story">User Story</label>
+        <textarea id="story" placeholder="As a user, I want to..."></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="criteria">Acceptance Criteria</label>
+        <textarea id="criteria" placeholder="Given... When... Then..."></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="stack">Tech Stack</label>
+        <input id="stack" type="text" placeholder="React, FastAPI, PostgreSQL, Docker" />
+      </div>
+      
+      <button class="generate-btn" onclick="generate()">✨ Generate Code</button>
+      
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
         </div>
-      `;
+        <div class="status" id="status">Initializing agents...</div>
+      </div>
+    </div>
+    
+    <div class="results" id="results">
+      <div class="result-grid">
+        <div class="result-card">
+          <div class="result-header">
+            <div class="result-icon">⚛️</div>
+            <h3>Frontend</h3>
+          </div>
+          <pre class="result-content" id="frontend">Waiting for results...</pre>
+        </div>
+        
+        <div class="result-card">
+          <div class="result-header">
+            <div class="result-icon">🔧</div>
+            <h3>Backend</h3>
+          </div>
+          <pre class="result-content" id="backend">Waiting for results...</pre>
+        </div>
+        
+        <div class="result-card">
+          <div class="result-header">
+            <div class="result-icon">🗄️</div>
+            <h3>Database</h3>
+          </div>
+          <pre class="result-content" id="database">Waiting for results...</pre>
+        </div>
+        
+        <div class="result-card">
+          <div class="result-header">
+            <div class="result-icon">🧪</div>
+            <h3>Tests</h3>
+          </div>
+          <pre class="result-content" id="tests">Waiting for results...</pre>
+        </div>
+        
+        <div class="result-card">
+          <div class="result-header">
+            <div class="result-icon">📚</div>
+            <h3>Documentation</h3>
+          </div>
+          <pre class="result-content" id="docs">Waiting for results...</pre>
+        </div>
+        
+        <div class="result-card">
+          <div class="result-header">
+            <div class="result-icon">🚀</div>
+            <h3>Deployment</h3>
+          </div>
+          <pre class="result-content" id="deployment">Waiting for results...</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    async function generate() {
+      const progressContainer = document.getElementById("progressContainer");
+      const progressFill = document.getElementById("progressFill");
+      const status = document.getElementById("status");
+      const results = document.getElementById("results");
+      
+      progressContainer.style.display = "block";
+      results.style.display = "block";
+      progressFill.style.width = "20%";
+      status.textContent = "Analyzing requirements...";
+      status.className = "status";
+      
+      const payload = {
+        title: document.getElementById("title").value,
+        userStory: document.getElementById("story").value,
+        acceptanceCriteria: document.getElementById("criteria").value,
+        techStack: document.getElementById("stack").value
+      };
+      
+      try {
+        progressFill.style.width = "40%";
+        status.textContent = "Coordinating AI agents...";
+        
+        const response = await fetch(
+          "https://hook.us2.make.com/bms5vwl9vgkk974nhz6gja9cf03x0xou",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          }
+        );
+        
+        progressFill.style.width = "70%";
+        status.textContent = "Generating code...";
+        
+        const data = await response.json();
+        
+        progressFill.style.width = "100%";
+        status.textContent = "✅ Code generated successfully!";
+        status.className = "status done";
+        
+        document.getElementById("frontend").textContent = data.frontend || "No output generated";
+        document.getElementById("backend").textContent = data.backend || "No output generated";
+        document.getElementById("database").textContent = data.database || "No output generated";
+        document.getElementById("tests").textContent = data.tests || "No output generated";
+        document.getElementById("docs").textContent = data.docs || "No output generated";
+        document.getElementById("deployment").textContent = data.deployment || "No output generated";
+        
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (err) {
+        progressFill.style.width = "100%";
+        progressFill.style.background = "#ef4444";
+        status.textContent = "❌ Error generating code";
+        status.className = "status error";
+        console.error(err);
+      }
     }
-
-  } catch (err) {
-    clearInterval(loader);
-    output.innerHTML = "<p style='color:red'>Error calling webhook</p>";
-  }
-
-  btn.disabled = false;
-}
-</script>
+  </script>
 </body>
 </html>
